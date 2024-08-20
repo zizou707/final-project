@@ -8,12 +8,13 @@ export const postRequest =async (url,body)=>{
    const data = response.data;
    return data
   } catch (error) {
-    let message = "An Error Occurred...";
-    
-    if (error.response && error.response.data && error.response.data.message) {
-      message = error.response.data.message;
-    }
-    return { error: true, message };
+    if (error?.response?.data){
+     let message = error.response.data 
+     return { error: true, message }; }
+     else if (error) { 
+      let message = error.message ;
+       return { error: true, message };
+      }
   }
 } 
 
@@ -26,12 +27,23 @@ export const getRequest = async (url)=>{
     
     return data
   } catch (error) {
-    let message = "An Error Occurred...";
-    
-    
-    if (error.response && error.response.data && error.response.data.message) {
-      message = error.response.data.message;
-    }
-    return { error: true, message };
+    if (error?.response?.data){
+     let message = error.response.data 
+     return { error: true, message }; }
+     else if (error) { 
+      let message = error.message ;
+       return { error: true, message };
+      }
   }
-};
+  }
+
+  export const getUserById =async (id)=>{
+    
+    
+  }
+    
+       
+
+  export const unreadNotifiactionsFunc = (not)=>{
+    return not?.filter(n=> n.isRead === false)
+  }

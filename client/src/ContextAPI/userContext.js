@@ -1,5 +1,6 @@
 import { createContext, useCallback, useEffect, useState } from "react";
-import { baseUrl, postRequest } from "../utils/services";
+import { baseUrl, getRequest, postRequest } from "../utils/services";
+import axios from 'axios'
 
 export const userContext = createContext(null);
 
@@ -36,8 +37,8 @@ export default function UserGlobalState ({children}){
 
    const response = await postRequest(`${baseUrl}/signUp`,(registerInfo));
    setIsRegisterLoading(false)
-   
-   if (response?.error){ return setRegisterError(response)}
+ 
+   if (response?.error){ return setRegisterError(response) }
    
    localStorage.setItem('User',JSON.stringify(response))
    setUser(response)
@@ -45,20 +46,23 @@ export default function UserGlobalState ({children}){
 
   const logoutUser = useCallback(async()=>{
      localStorage.removeItem('User')
+     localStorage.removeItem('UserChats')
      setUser(null)
   },[])
 
-  useEffect(()=>{
+ /*  useEffect(()=>{
     const user = localStorage.getItem('User');
     setUser(JSON.parse(user))
-  },[])
+  },[]) */
 
   const loginUser = useCallback(async(e)=>{
         e.preventDefault();
       setIsLoginLoading(true);
       setLoginError(null);
-    const response = await postRequest(`${baseUrl}/login`,(loginInfo));
+     
+    const response = await getRequest(`${baseUrl}/login/${loginInfo.email}/${loginInfo.password}`);
      setIsLoginLoading(false);
+    
     if (response.error){ return setLoginError(response) }
 
     localStorage.setItem('User',JSON.stringify(response.user))

@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post('/signUp',signupUser)
 
-router.post('/login',loginUser)
+router.get('/login/:email/:password',loginUser)
 
 router.get('/:id', findUser)
 

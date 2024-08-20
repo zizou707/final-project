@@ -9,9 +9,9 @@ import MessagesBox from '../Messages/MessagesBox';
 
 function Chat() {
 const { user } = useContext(userContext)
-const { userChats,isUserChatsLoading , userChatsError  } = useContext(chatContext);
+const { isUserChatsLoading ,userChats, userChatsError  } = useContext(chatContext);
  const { updateCurrentChat } = useContext(messagesContext)
-
+ console.log(userChats);
  
   return (
     <Container>

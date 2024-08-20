@@ -1,4 +1,5 @@
 const Chat = require('../models/chatSchema');
+const User = require('../models/userSchema');
 
 // create chat 
 
@@ -55,5 +56,6 @@ const findChat = async (req , res) => {
         res.status(500).json(error)  
     }
 } 
+
 
 module.exports = {createChat,findUserChats,findChat} ;

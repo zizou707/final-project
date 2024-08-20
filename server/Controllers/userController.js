@@ -1,4 +1,4 @@
-const userSchema = require('../models/userSchema')
+
 const User = require('../models/userSchema')
 const jwt = require('jsonwebtoken')
 
@@ -8,7 +8,7 @@ const createToken = (_id) => {
 
 // login a user
 const loginUser = async (req, res) => {
-  const {email, password} = req.body
+  const {email, password} = req.params
 
   try {
     const user = await User.login(email, password)
@@ -43,7 +43,8 @@ const signupUser = async (req, res) => {
 const findUser = async (req, res) => {
   const userId = req.params.id ;
   try {
-    const user = await userSchema.findById(userId);
+    const user = await User.findById(userId);
+    
     res.status(200).json(user);
   } catch (error) {
     console.log(error);
@@ -55,7 +56,7 @@ const findUser = async (req, res) => {
 const getUsers = async (req, res) => {
  
   try {
-    const users = await userSchema.find();
+    const users = await User.find();
     res.status(200).json(users);
   } catch (error) {
     console.log(error);
@@ -63,4 +64,5 @@ const getUsers = async (req, res) => {
   }
 }
 
-module.exports = { signupUser, loginUser, findUser, getUsers }
+
+module.exports = { signupUser, loginUser, findUser, getUsers  }

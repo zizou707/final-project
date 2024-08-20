@@ -49,12 +49,12 @@ userSchema.statics.signup = async function(name,email,password,phone,address) {
   
     const user = await this.findOne({ email })
     if (!user) {
-      throw Error('Incorrect email')
+      throw Error('Invalid email or password...')
     }
   
     const match = await bcrypt.compare(password, user.password)
     if (!match) {
-      throw Error('Incorrect password')
+      throw Error('Invalid email or password...')
     }
   
     return user

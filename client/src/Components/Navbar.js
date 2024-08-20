@@ -7,7 +7,7 @@ import Notifications from './Messages/Notifications'
 
 function Navbar() {
   
-  const {user , logoutUser } = useContext(userContext)
+  const {user ,loginUser, logoutUser } = useContext(userContext)
   
   return (
     <nav >
@@ -19,15 +19,15 @@ function Navbar() {
 
          {user ? <> 
                     <Notifications /> 
-                    <Link className='logout-btn text-white' onClick={logoutUser} to='/'>Logout</Link>
+                    <Link className='navbar-btn logout  text-white' onClick={logoutUser} to='/'>Logout</Link>
                     <div>
                         <Image width={100} roundedCircle fluid src={profilePic} alt='profile-pic' />
-                        <h3 className='text-center text-white'>{user?.name} </h3>
+                        <h3 className='text-center text-white'>{user?.name[0].toUpperCase()+user.name.slice(1)} </h3>
                     </div> 
                  </> : 
          <>
-            <Link className='text-white' to='/Login'>Login</Link>  
-            <Link className='text-white' to='/Register'>SignUp</Link> 
+            <Link className='navbar-btn text-white' to='/Login' onClick={loginUser} >Login</Link>  
+            <Link className='navbar-btn text-white' to='/Register'>SignUp</Link> 
          </> }
        </ul>  
     </nav>

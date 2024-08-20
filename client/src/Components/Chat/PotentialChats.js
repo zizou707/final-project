@@ -8,6 +8,7 @@ function PotentialChats() {
     const {potentialChats,createChat} = useContext(chatContext);
     const {onlineUsers} = useContext(messagesContext);
 
+    console.log(potentialChats);
     
   return (
    <> 
@@ -15,7 +16,7 @@ function PotentialChats() {
         {potentialChats && potentialChats.map((u,index)=>{
             return(
             <div className="single-user" key={index} onClick={()=>createChat(user._id,u._id)}>
-            {u.name}
+            {u?.name[0].toUpperCase()+u?.name.slice(1)}
             <span className={onlineUsers?.some((user)=>user?.userId === u._id) ? "user-online" : ""}></span>
             </div>
         )})}

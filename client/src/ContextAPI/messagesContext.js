@@ -6,6 +6,7 @@ import { chatContext } from "./chatContext";
 export const messagesContext = createContext();
 
 export default function  MessagesGlobaleState ({children,user}) {
+   const [allUsers , setAllUsers] = useState([]);
    const [currentChat,setCurrentChat] = useState(null);
    const [messages,setMessages] = useState([]);
    const [isMessagesLoading,setIsMessagesLoading] = useState(false);
@@ -16,10 +17,10 @@ export default function  MessagesGlobaleState ({children,user}) {
    const [onlineUsers,setOnlineUsers] = useState([]);
    const [notifications,setNotifications] = useState([]);
 
+console.log("notifications : " , notifications);
+console.log("messages : " , messages);
 
 const { userChats } = useContext(chatContext)
-console.log("notifications",notifications);
-console.log('currentChat',currentChat);
 
 // initialization socket
 useEffect(()=>{
@@ -35,53 +36,55 @@ useEffect(()=>{
    if (socket === null) return
    socket.emit("addNewUser",user?._id)
    socket.on("getOnlineUsers",(res)=>{
-      setOnlineUsers(prev=>[...prev,res])
+      
+      setOnlineUsers(res)
    });
    return ()=>{
       socket.off('getOnlineUsers');
    }
-},[socket])
+},[socket,user?._id])
 
 // send messages
-useEffect(()=>{
-   if (socket === null) return
-    
-   if (currentChat){
-   const recipientId = currentChat?.members.find(id => id !== user?._id)
-   socket.emit('sendMessage',{...newMessage,recipientId})
+useEffect(() => {
+   if (socket === null || !currentChat) return;
+ 
+   const recipientId = currentChat?.members.find(id => id !== user?._id);
+ 
+   if (recipientId) {
+     socket.emit('sendMessage', { ...newMessage, recipientId });
    }
-},[newMessage])
+ }, [newMessage, currentChat, socket, user?._id]);
 
 // recieve message and notification
 useEffect(()=>{
    if (socket === null) return
   
  socket.on("getMessage", res => {
-
-   console.log(res);
    
    if (currentChat?._id !== res.chatId ) return ;
 
    setMessages(prev => [...prev, res])
  })
 
- socket.on("getNotification", res => {
+ socket.on("getNotification", (res) => {
   const recieverId = currentChat?.members.find(id=>id !== res.senderId)
   const isChatOpen = onlineUsers.some((u)=>u.userId === recieverId)
-        
-     if (isChatOpen) { 
-      setNotifications(prev => [{...res,isRead:true}, ...prev])
-   }else {
+  console.log("ischat open ? : " , isChatOpen); 
+  
+     if (isChatOpen) {  
+        setNotifications(prev => [{...res,isRead:true}, ...prev])
+         localStorage.setItem("Notifications",JSON.stringify(notifications))
+   }else if (isChatOpen && !recieverId)  { 
       setNotifications(prev => [res, ...prev])
-   } 
- }) 
-
+      localStorage.setItem("Notifications",JSON.stringify(notifications))
+}}) 
+ 
 return ()=>{
    socket.off("getMessage");
    socket.off("getNotification")
 }   
   
-},[socket,currentChat])
+},[socket,currentChat,newMessage,notifications,onlineUsers])
 
    useEffect(()=>{
     const getMessages = async()=>{
@@ -114,29 +117,59 @@ return ()=>{
 },[]) */
 
 const sendMessage = useCallback(
-   async(messageText,sender,currentChatId,setMessageText)=>{
+   // function to send messages
+   async(messageText,currentChatId,sender,authorName,setMessageText)=>{
    if (!messageText) { return alert("You cant send empty message.")}
- const response =await postRequest(`${baseUrl}/messages`,({chatId:currentChatId,
-                                                                    senderId:sender,
-                                                                    messageText
+ const response =await postRequest(`${baseUrl}/messages`,({ 
+                                                           messageText,
+                                                           chatId:currentChatId,
+                                                           senderId:sender,
+                                                           authorName
                                                                   }))     
-  if (response.error) { return setSendMessageTextError(response)}
+           console.log(response);                                                   
+  if (response.error) {
+   return setSendMessageTextError(response)}
 
   setNewMessage(response);
   setMessages(prev=>[...prev,response])
   setMessageText('');
 },[])
+ // function to send notifications
+const sendNotifications = useCallback( 
+ async(chatId,senderId,recieverId,message,date)=>{
+    
+   const response =await postRequest(`${baseUrl}/notifications/${senderId}/${recieverId}`,
+                                        ({chatId,
+                                           message,
+                                           isRead:false,
+                                           date
+                                          }))     
+     setNotifications(prev=>[...prev,response])
+                                          
+ },[])
 
   const updateCurrentChat = useCallback((chat)=>{
        setCurrentChat(chat)
+  },[])
+  // get all users
+  useEffect(()=>{
+   const getUsers =async ()=>{
+   try {   
+      const response =await getRequest(`${baseUrl}/`)
+      setAllUsers(prev=>[...prev,response])
+   } catch (error) {
+      console.log(error);
+   }}
+   getUsers();
   },[])
   
    return (<messagesContext.Provider 
     value={{
        messages,isMessagesLoading,messagesError,
        updateCurrentChat,currentChat,
-       sendMessage,onlineUsers,
-       notifications
+       sendMessage,sendMessageTextError,onlineUsers,
+       notifications,allUsers,
+       sendNotifications
     }}
    >
   {children}

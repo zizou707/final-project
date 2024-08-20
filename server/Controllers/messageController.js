@@ -3,9 +3,9 @@ const Message = require('../models/messageSchema');
 // create message
 
 const createMessage = async (req, res) => {
-    const {chatId,senderId,recieverId,messageText} = req.body;
+    const {chatId,senderId,authorName,messageText} = req.body;
 
-    const message = new Message({chatId,senderId,recieverId,messageText})
+    const message = new Message({chatId,senderId,authorName,messageText})
 
    try {
     const response =await message.save()

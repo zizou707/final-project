@@ -11,7 +11,7 @@ root.render(
   <UserGlobalState>
     
       <BrowserRouter> 
-        <Navbar />
+        
         <App />
       </BrowserRouter> 
     

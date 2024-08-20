@@ -8,38 +8,42 @@ export default function ChatGlobalState ({children,user}) {
     const [userChats,setUserChats] = useState([]);
     const [isUserChatsLoading,setIsUserChatsLoading] = useState(false);
     const [userChatsError,setUserChatsError] = useState(null);
+    const [creatingChatError, setCreatingChatError] = useState(null)
     const [potentialChats,setPotentialChats] = useState([]);
+    const [potentialChatsError,setPotentialChatsError] = useState(null);
 
-    const createChat = useCallback(async(senderId,recieverId)=>{
-        const response = await postRequest(`${baseUrl}/chats`,({senderId,recieverId}))
-
-        if (response.error) { return console.log("Error creating chat... ", response);
-        }
-
+    const createChat = useCallback(async(senderId,recieverId)=>{      
+        try {
+           const response = await postRequest(`${baseUrl}/chats`,({senderId,recieverId}))
+        console.log(response);
         setUserChats(prev=>[...prev,response])
+       } catch (error) {
+         console.log(error);
+         setCreatingChatError(error)
+       }
     },[])
 
     useEffect(()=>{
         const getPotentialChatUsers =async ()=>{
-           const response = await getRequest(`${baseUrl}`);
-           
-           if (response.error) { return console.log("Error fetching users... ", response);
-           }
-          const pChats = response.filter((u)=>{
-            let isChatCreated = false
-            if (user?._id === u._id) { return false}
-
-           if (userChats) {
-            isChatCreated = userChats?.some((chat)=>{ 
-                return (
-                       chat.members[0] === u._id  || chat.members[1] === u._id
-             ); })
-           }
-           return !isChatCreated
-          })
-          setPotentialChats(pChats)
-        }
-
+            try {
+                const response = await getRequest(`${baseUrl}`);
+        
+                const pChats = response.filter((u)=>{
+                  let isChatCreated = false
+                  if (user?._id === u._id) { return false}
+      
+                 if (userChats) {
+                  isChatCreated = userChats?.some((chat)=>{ 
+                      return (
+                             chat.members[0] === u._id  || chat.members[1] === u._id
+                   ); })
+                 }
+                 return !isChatCreated
+                })
+                setPotentialChats(pChats) 
+            } catch (error) {
+                setPotentialChatsError(error)
+            }}
         getPotentialChatUsers()
     },[userChats,user])
     
@@ -48,6 +52,7 @@ export default function ChatGlobalState ({children,user}) {
     useEffect(()=>{
         const getUserChats = async()=>{
             if (user?._id) { 
+              
                 setIsUserChatsLoading(true)
                 setUserChatsError(null);
                        
@@ -59,7 +64,9 @@ export default function ChatGlobalState ({children,user}) {
 
                 localStorage.setItem('UserChats',JSON.stringify(response))
                 
-                setUserChats(response)  
+                setUserChats(response) 
+                console.log("userChats",userChats);
+                 
             }
         }
         getUserChats();

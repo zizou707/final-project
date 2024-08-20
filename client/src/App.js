@@ -6,6 +6,7 @@ import ChatGlobalState from "./ContextAPI/chatContext";
 import {userContext} from "./ContextAPI/userContext";
 import Chat from './Components/Chat/Chat';
 import MessagesGlobaleState from './ContextAPI/messagesContext';
+import Navbar from './Components/Navbar';
 
 function App() {
   const { user } = useContext(userContext)
@@ -13,6 +14,7 @@ function App() {
   return (  
       <ChatGlobalState user={user} >
         <MessagesGlobaleState user={user} >
+            <Navbar />
             <Routes>
               <Route path="/" element={user ? <Chat /> : <Login />} />
               <Route path="/register" element={user ? <Chat /> : <Register />} />

@@ -8,8 +8,10 @@ const createToken = (_id) => {
 
 // login a user
 const loginUser = async (req, res) => {
-  const {email, password} = req.params
-
+  const {email, password} = req.body
+  if (!email || !password) {
+    throw Error('All fields must be filled')
+  }
   try {
     const user = await User.login(email, password)
 

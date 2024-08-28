@@ -21,6 +21,6 @@ export const useFetchRecipient = (chat,user) => {
       }   
     };
     getUser()
-  },[user._id,chat?.members])
+  },[user?._id,chat?.members])
   return {recipientUser,error}
 }

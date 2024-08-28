@@ -3,7 +3,6 @@ import {userContext} from "../ContextAPI/userContext";
 
 function Register() {
   const {registerInfo,updateRegisterInfo,registerUser,registerError,isRegisterLoading}=useContext(userContext);  
-  console.log(registerError);
   
   return (
     <div className="register-form-container" style={{marginLeft:"30%"}}>

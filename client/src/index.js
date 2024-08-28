@@ -9,11 +9,8 @@ import Navbar from './Components/Navbar';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <UserGlobalState>
-    
-      <BrowserRouter> 
-        
+      <BrowserRouter>  
         <App />
       </BrowserRouter> 
-    
   </UserGlobalState>
 );

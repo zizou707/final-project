@@ -1,12 +1,11 @@
-const Notification = require('../models/notificationSchema');
+/* const Notification = require('../models/notificationSchema');
 
 // create notification
 
 const createNotification = async (req, res) => {
-    const {chatId,message,isRead,date} = req.body;
-    const {senderId,recieverId} = req.params;
+    const {chatId,receiverId,message,isRead,date} = req.body;
 
-    const notification = new Notification({chatId,senderId,recieverId,message,isRead,date})
+    const notification = new Notification({chatId,receiverId,message,isRead,date})
 
    try {
     const response =await notification.save()
@@ -32,4 +31,4 @@ const getNotifications = async (req,res) => {
        }
 }
 
-module.exports = {createNotification , getNotifications} ;
+module.exports = {createNotification , getNotifications} ; */

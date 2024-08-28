@@ -1,12 +1,13 @@
 import { createContext , useCallback, useContext, useEffect, useState } from "react";
-import { baseUrl , getRequest , postRequest } from "../utils/services";
+import { baseUrl , getRequest , postRequest, updateRequest } from "../utils/services";
 import { io } from 'socket.io-client' 
 import { chatContext } from "./chatContext";
+import axios from "axios";
 
 export const messagesContext = createContext();
 
 export default function  MessagesGlobaleState ({children,user}) {
-   const [allUsers , setAllUsers] = useState([]);
+   
    const [currentChat,setCurrentChat] = useState(null);
    const [messages,setMessages] = useState([]);
    const [isMessagesLoading,setIsMessagesLoading] = useState(false);
@@ -16,15 +17,11 @@ export default function  MessagesGlobaleState ({children,user}) {
    const [socket,setSocket] = useState(null);
    const [onlineUsers,setOnlineUsers] = useState([]);
    const [notifications,setNotifications] = useState([]);
-
-console.log("notifications : " , notifications);
-console.log("messages : " , messages);
-
-const { userChats } = useContext(chatContext)
+   const [errorDeletingMessage,setErrorDeletingMessage] = useState(null);
 
 // initialization socket
 useEffect(()=>{
-   const newSocket = io("http://localhost:8080/",);
+   const newSocket = io("http://localhost:3030/",);
    
    setSocket(newSocket)
 
@@ -34,7 +31,9 @@ useEffect(()=>{
 // add Online Users
 useEffect(()=>{
    if (socket === null) return
-   socket.emit("addNewUser",user?._id)
+   // sending user info to socket server to init onlineUsers array
+   socket.emit("addNewUser",user?.name , user?._id)
+   // getting onlineUsers from socket io server
    socket.on("getOnlineUsers",(res)=>{
       
       setOnlineUsers(res)
@@ -42,52 +41,52 @@ useEffect(()=>{
    return ()=>{
       socket.off('getOnlineUsers');
    }
-},[socket,user?._id])
+},[socket,user?.name,user?._id])
 
-// send messages
+// send messages and notifications 
 useEffect(() => {
-   if (socket === null || !currentChat) return;
+   if (socket === null ) return;
  
    const recipientId = currentChat?.members.find(id => id !== user?._id);
  
    if (recipientId) {
-     socket.emit('sendMessage', { ...newMessage, recipientId });
+     socket.emit('sendMessage', { ...newMessage , recipientId});
    }
- }, [newMessage, currentChat, socket, user?._id]);
-
-// recieve message and notification
+ }, [newMessage,socket,currentChat?.members,user?._id]);
+ 
+ 
+// receive message and notification
 useEffect(()=>{
    if (socket === null) return
   
- socket.on("getMessage", res => {
+   socket.on("getMessage", res => {
+      
+      if (currentChat?._id !== res.chatId ) return ;
    
-   if (currentChat?._id !== res.chatId ) return ;
+      setMessages(prev => [...prev,res])
+   })
 
-   setMessages(prev => [...prev, res])
- })
-
- socket.on("getNotification", (res) => {
-  const recieverId = currentChat?.members.find(id=>id !== res.senderId)
-  const isChatOpen = onlineUsers.some((u)=>u.userId === recieverId)
-  console.log("ischat open ? : " , isChatOpen); 
+   socket.on("getNotification", (res) => {
+  
+   const isChatOpen = currentChat?.members.some((id)=> id === res.receiverId)
   
      if (isChatOpen) {  
         setNotifications(prev => [{...res,isRead:true}, ...prev])
-         localStorage.setItem("Notifications",JSON.stringify(notifications))
-   }else if (isChatOpen && !recieverId)  { 
+   }else { 
       setNotifications(prev => [res, ...prev])
-      localStorage.setItem("Notifications",JSON.stringify(notifications))
-}}) 
+}})  
  
 return ()=>{
    socket.off("getMessage");
-   socket.off("getNotification")
+   socket.off("getNotification") 
 }   
   
-},[socket,currentChat,newMessage,notifications,onlineUsers])
+},[socket,currentChat])
 
-   useEffect(()=>{
-    const getMessages = async()=>{
+// part of socket end
+// get Messages from db
+ 
+    const getMessages =useCallback( async()=>{
              if (currentChat) {
             setIsMessagesLoading(true)
             setMessagesError(null);
@@ -103,73 +102,129 @@ return ()=>{
             setMessages(response)  
         
     }}
-    getMessages();
-  },[currentChat]) 
+   ,[currentChat]) 
 
- /*  const createMessages = useCallback(async(chatId,senderId,recieverId,messageText)=>{
-
-   const response = await postRequest(`${baseUrl}/messages`,({chatId,senderId,recieverId,messageText}))
-
-   if (response.error) { return console.log("Error creating chat... ", response);
-   }
-
-   setMessages(prev=>[...prev,response])
-},[]) */
-
+ // function to send messages 
 const sendMessage = useCallback(
-   // function to send messages
-   async(messageText,currentChatId,sender,authorName,setMessageText)=>{
-   if (!messageText) { return alert("You cant send empty message.")}
- const response =await postRequest(`${baseUrl}/messages`,({ 
-                                                           messageText,
-                                                           chatId:currentChatId,
-                                                           senderId:sender,
-                                                           authorName
-                                                                  }))     
-           console.log(response);                                                   
+  
+   async(currentChatId,senderId,authorName,receiverId,messageText,setMessageText)=>{
+    
+   if (!messageText) { return alert("You can't send empty message.")}
+ const response =await postRequest(`${baseUrl}/messages`,({chatId:currentChatId,
+                                                           senderId,
+                                                           authorName,
+                                                           receiverId,
+                                                           messageText 
+                                                         }))     
+                                                             
   if (response.error) {
    return setSendMessageTextError(response)}
 
   setNewMessage(response);
   setMessages(prev=>[...prev,response])
-  setMessageText('');
+  setMessageText('')
+  
 },[])
- // function to send notifications
-const sendNotifications = useCallback( 
- async(chatId,senderId,recieverId,message,date)=>{
-    
-   const response =await postRequest(`${baseUrl}/notifications/${senderId}/${recieverId}`,
-                                        ({chatId,
-                                           message,
-                                           isRead:false,
-                                           date
-                                          }))     
-     setNotifications(prev=>[...prev,response])
-                                          
- },[])
 
+// update Message function
+const updateMessage = useCallback(
+  
+   async(messageId,currentChatId,senderId,authorName,receiverId,messageText,setMessageText)=>{
+    
+   if (!messageText) { return alert("You cant send empty message.")}
+ const response =await updateRequest(`${baseUrl}/messages/${messageId}`,({chatId:currentChatId,
+                                                           senderId,
+                                                           authorName,
+                                                           receiverId,
+                                                           messageText 
+                                                         }))     
+                                                             
+  if (response.error) {
+   return setSendMessageTextError(response)}
+
+  setNewMessage(response?.config?.data);
+  setMessages(prev=>[...prev,response?.config?.data])
+  setMessageText('')
+ 
+},[])
+
+ // delete Message Function
+
+ const deleteMessage =useCallback( async(messageId)=>{
+     
+   try {
+    await axios.delete(`${baseUrl}/messages/${messageId}`)
+
+    const filteredMessages =messages?.filter(id => id === messageId)
+
+    setMessages(filteredMessages)
+    getMessages()
+   } catch (error) {
+ 
+    setErrorDeletingMessage(error)
+   }
+},[messages,getMessages]) 
+
+// function to update current chat 
   const updateCurrentChat = useCallback((chat)=>{
        setCurrentChat(chat)
   },[])
-  // get all users
-  useEffect(()=>{
-   const getUsers =async ()=>{
-   try {   
-      const response =await getRequest(`${baseUrl}/`)
-      setAllUsers(prev=>[...prev,response])
-   } catch (error) {
-      console.log(error);
-   }}
-   getUsers();
+ 
+// function to mark all notifications as read  
+  const markAllNotificationsAsRead = useCallback(()=>{
+    const mNotifications = notifications.map(n=>{ return  {...n,isRead : true}})
+    setNotifications(mNotifications)
+  },[notifications])
+
+// function to mark specific notification as read  
+  const markNotificationAsRead = useCallback((n, userChats, user, notifications)=>{
+   // find chat to open
+   const desiredChat =userChats.find((chat)=>{
+      const chatMembers = [user._id,n.senderId];
+      const isDesiredChat = chat?.members.every((member)=>{
+         return chatMembers.includes(member);
+      });
+      return isDesiredChat
+   });
+   const mNotifications = notifications.map(el=>{ 
+      if (n.senderId === el.senderId) {
+         return {...n,isRead : true}
+      } else {
+         return el
+      }
+   })
+
+   updateCurrentChat(desiredChat);
+   setNotifications(mNotifications)
+  },[updateCurrentChat])
+
+// mark a specific user friend notifications as read
+  const markThisUserNotificationsAsRead = useCallback((thisUserNotifications,notifications)=>{
+    const mNotifications = notifications.map(el => {
+      let notification;
+    thisUserNotifications.forEach(n => {
+      if (n.senderId === el.senderId) {
+           notification = {...n , isRead : true}
+      } else { notification = el}
+    })
+    return notification   
+    })
+    setNotifications(mNotifications)
   },[])
-  
+
    return (<messagesContext.Provider 
     value={{
        messages,isMessagesLoading,messagesError,
-       updateCurrentChat,currentChat,
-       sendMessage,sendMessageTextError,onlineUsers,
-       notifications,allUsers,
-       sendNotifications
+       updateCurrentChat ,currentChat,
+       sendMessage,sendMessageTextError,
+       onlineUsers,
+       notifications,
+       errorDeletingMessage,
+       deleteMessage,getMessages,
+       updateMessage,
+       markAllNotificationsAsRead,
+       markNotificationAsRead,  
+       markThisUserNotificationsAsRead
     }}
    >
   {children}

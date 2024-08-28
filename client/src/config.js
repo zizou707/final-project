@@ -1,1 +1,0 @@
-export const hostName = "http://localhost:4000"

@@ -7,7 +7,7 @@ import Notifications from './Messages/Notifications'
 
 function Navbar() {
   
-  const {user ,loginUser, logoutUser } = useContext(userContext)
+  const {user , logoutUser } = useContext(userContext)
   
   return (
     <nav >
@@ -17,7 +17,7 @@ function Navbar() {
 
       <ul className='flex absolute right-5 top-0 gap-10 mt-2 '>
 
-         {user ? <> 
+         {user ? <>  {/*  if there is a user show the logout button or if not show login and signUp buttons */}
                     <Notifications /> 
                     <Link className='navbar-btn logout  text-white' onClick={logoutUser} to='/'>Logout</Link>
                     <div>
@@ -26,7 +26,7 @@ function Navbar() {
                     </div> 
                  </> : 
          <>
-            <Link className='navbar-btn text-white' to='/Login' onClick={loginUser} >Login</Link>  
+            <Link className='navbar-btn text-white' to='/Login' >Login</Link>  
             <Link className='navbar-btn text-white' to='/Register'>SignUp</Link> 
          </> }
        </ul>  

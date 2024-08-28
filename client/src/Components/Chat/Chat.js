@@ -9,9 +9,9 @@ import MessagesBox from '../Messages/MessagesBox';
 
 function Chat() {
 const { user } = useContext(userContext)
-const { isUserChatsLoading ,userChats, userChatsError  } = useContext(chatContext);
+const { isUserChatsLoading ,userChats, userChatsError , creatingChatError } = useContext(chatContext);
  const { updateCurrentChat } = useContext(messagesContext)
- console.log(userChats);
+
  
   return (
     <Container>
@@ -19,8 +19,8 @@ const { isUserChatsLoading ,userChats, userChatsError  } = useContext(chatContex
       {userChats?.length < 1 ? null : 
        <Stack direction='horizontal' gap={4} className='align-items-start'>
         <Stack className='messages-box flex-grow-0 pe-3'>
-          {isUserChatsLoading && <p>Loading Chats...</p>}
-           {userChats && userChats.map((chat,index)=>{
+          {isUserChatsLoading && <p>Loading Chats...</p> }
+           {userChats && userChats?.map((chat,index)=>{
             return ( <div key={index}   onClick={()=>updateCurrentChat(chat)}  >
                       <UserChat chat={chat} user={user} />
                      </div>)
@@ -28,6 +28,8 @@ const { isUserChatsLoading ,userChats, userChatsError  } = useContext(chatContex
         </Stack>
         <MessagesBox />
        </Stack>}
+        {userChatsError && <div className="-mt-10 mb-2 bg-red-500 p-2"><p role="alert">{userChatsError.message}</p></div> }
+        {creatingChatError && <div className="-mt-10 mb-2 bg-red-500 p-2"><p role="alert">{creatingChatError.message}</p></div> }
     </Container>
   )
 }

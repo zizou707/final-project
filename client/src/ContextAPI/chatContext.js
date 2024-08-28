@@ -11,20 +11,24 @@ export default function ChatGlobalState ({children,user}) {
     const [creatingChatError, setCreatingChatError] = useState(null)
     const [potentialChats,setPotentialChats] = useState([]);
     const [potentialChatsError,setPotentialChatsError] = useState(null);
-
+    const [allUsers , setAllUsers] = useState([]);
+    
+ // creating a chat in database   
     const createChat = useCallback(async(senderId,recieverId)=>{      
         try {
            const response = await postRequest(`${baseUrl}/chats`,({senderId,recieverId}))
-        console.log(response);
+      
         setUserChats(prev=>[...prev,response])
        } catch (error) {
          console.log(error);
          setCreatingChatError(error)
        }
-    },[])
+    },[]) 
 
+ // getting all users from db then filtering the potential chat withe removing the current user 
+ // and find is that user is already have a chat with the current logged in user   
     useEffect(()=>{
-        const getPotentialChatUsers =async ()=>{
+        const getUsers =async ()=>{
             try {
                 const response = await getRequest(`${baseUrl}`);
         
@@ -41,14 +45,14 @@ export default function ChatGlobalState ({children,user}) {
                  return !isChatCreated
                 })
                 setPotentialChats(pChats) 
+                setAllUsers(response)
             } catch (error) {
                 setPotentialChatsError(error)
             }}
-        getPotentialChatUsers()
-    },[userChats,user])
+        getUsers()
+    },[user,userChats])
     
-    
-    
+// get User chats whenever the user changes
     useEffect(()=>{
         const getUserChats = async()=>{
             if (user?._id) { 
@@ -61,12 +65,9 @@ export default function ChatGlobalState ({children,user}) {
                 setIsUserChatsLoading(false)  
                    
                 if (response.error){ return setUserChatsError(response)}
-
-                localStorage.setItem('UserChats',JSON.stringify(response))
                 
                 setUserChats(response) 
-                console.log("userChats",userChats);
-                 
+             
             }
         }
         getUserChats();
@@ -79,7 +80,10 @@ export default function ChatGlobalState ({children,user}) {
           isUserChatsLoading,
           userChatsError,
           potentialChats,
-          createChat
+          createChat,
+          allUsers,
+          creatingChatError,
+          potentialChatsError
         }}>
            {children}
         </chatContext.Provider>

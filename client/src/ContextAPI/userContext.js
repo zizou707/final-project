@@ -50,17 +50,20 @@ export default function UserGlobalState ({children}){
      setUser(null)
   },[])
 
- /*  useEffect(()=>{
+   useEffect(()=>{
     const user = localStorage.getItem('User');
     setUser(JSON.parse(user))
-  },[]) */
+  },[]) 
 
   const loginUser = useCallback(async(e)=>{
         e.preventDefault();
       setIsLoginLoading(true);
       setLoginError(null);
      
-    const response = await getRequest(`${baseUrl}/login/${loginInfo.email}/${loginInfo.password}`);
+    const response = await postRequest(`${baseUrl}/login`, {
+     email : loginInfo.email,
+     password : loginInfo.password
+    });
      setIsLoginLoading(false);
     
     if (response.error){ return setLoginError(response) }

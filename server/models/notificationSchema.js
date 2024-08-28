@@ -1,10 +1,9 @@
-const mongoose = require('mongoose');
+/* const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
     chatId : String,
-    senderId : String ,
-    recieverId : String,
-    message : String ,
+    receiverId : {type : String , required : true},
+    message : {type : String , required : true},
     isRead : Boolean,
     date : Date ,
 },
@@ -12,4 +11,4 @@ const notificationSchema = new mongoose.Schema({
     timestamps : true
 })
 
-module.exports = mongoose.model('Notification',notificationSchema);
+module.exports = mongoose.model('Notification',notificationSchema); */

@@ -5,10 +5,8 @@ import { messagesContext } from '../../ContextAPI/messagesContext';
 
 function PotentialChats() {
     const {user} = useContext(userContext);
-    const {potentialChats,createChat} = useContext(chatContext);
+    const {potentialChats,createChat,potentialChatsError} = useContext(chatContext);
     const {onlineUsers} = useContext(messagesContext);
-
-    console.log(potentialChats);
     
   return (
    <> 
@@ -20,6 +18,7 @@ function PotentialChats() {
             <span className={onlineUsers?.some((user)=>user?.userId === u._id) ? "user-online" : ""}></span>
             </div>
         )})}
+      {potentialChatsError && <div className="-mt-10 mb-2 bg-red-500 p-2"><p role="alert">{potentialChatsError.message}</p></div> }  
    </div>
    </>
   )

@@ -1,70 +1,66 @@
-
-const User = require('../models/userSchema')
-const jwt = require('jsonwebtoken')
+const User = require("../models/userSchema");
+const jwt = require("jsonwebtoken");
 
 const createToken = (_id) => {
-  return jwt.sign({_id}, process.env.SECRET, { expiresIn: '7d' })
-}
+  return jwt.sign({ _id }, process.env.SECRET, { expiresIn: "7d" });
+};
 
 // login a user
 const loginUser = async (req, res) => {
-  const {email, password} = req.body
+  const { email, password } = req.body;
   if (!email || !password) {
-    throw Error('All fields must be filled')
+    throw Error("All fields must be filled");
   }
   try {
-    const user = await User.login(email, password)
+    const user = await User.login(email, password);
 
     // create a token
-    const token = createToken(user._id)
+    const token = createToken(user._id);
 
-    res.status(200).json({user,token})
+    res.status(200).json({ user, token });
   } catch (error) {
-    res.status(400).json({error: error.message})
+    res.status(400).json({ error: error.message });
   }
-}
+};
 
 // signup a user
 const signupUser = async (req, res) => {
-  const {name,email,password,phone} = req.body
+  const { name, email, password, profileImage } = req.body;
 
   try {
-    
-    const user = await User.signup(name , email, password , phone )
+    const user = await User.signup(name, email, password, profileImage);
 
     // create a token
-    const token = createToken(user._id)
+    const token = createToken(user._id);
 
-    res.status(200).json({name,email, token,phone})
+    res.status(200).json({ name, email, password: token, profileImage });
   } catch (error) {
-    res.status(400).json({error: error.message})
+    res.status(400).json({ error: error.message });
   }
-}
+};
 
-//find a user by id 
+//find a user by id
 const findUser = async (req, res) => {
-  const userId = req.params.id ;
+  const userId = req.params.id;
   try {
     const user = await User.findById(userId);
-    
+
     res.status(200).json(user);
   } catch (error) {
     console.log(error);
-    res.status(500).json(error)
+    res.status(500).json(error);
   }
-}
+};
 
-//get all users 
+//get all users
 const getUsers = async (req, res) => {
- 
   try {
     const users = await User.find();
     res.status(200).json(users);
   } catch (error) {
     console.log(error);
-    res.status(500).json(error)
+    res.status(500).json(error);
   }
-}
+};
 
-
-module.exports = { signupUser, loginUser, findUser, getUsers  }
+module.exports = { signupUser, loginUser, findUser, getUsers };

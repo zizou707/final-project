@@ -1,61 +1,59 @@
-const Chat = require('../models/chatSchema');
-const User = require('../models/userSchema');
+const Chat = require("../models/chatSchema");
+const User = require("../models/userSchema");
 
-// create chat 
+// create chat
 
 const createChat = async (req, res) => {
-    const {senderId,recieverId} = req.body;
+  const { senderId, recieverId } = req.body;
 
-   try {
-    
-    const chat =await Chat.findOne({
-        members :{$all: [senderId,recieverId]}
-    })
+  try {
+    const chat = await Chat.findOne({
+      members: { $all: [senderId, recieverId] },
+    });
     if (chat) return res.status(200).json(chat);
 
     const newChat = new Chat({
-        members : [senderId,recieverId]
-    })
+      members: [senderId, recieverId],
+    });
 
-    const response = await newChat.save()
-    res.status(200).send(response)
-   } catch (error) {
-     console.log(error);
-     res.status(501).json(error)
-   }
-}
+    const response = await newChat.save();
+    res.status(200).send(response);
+  } catch (error) {
+    console.log(error);
+    res.status(501).json(error);
+  }
+};
 
 // find all UserChats for 1 User
 
-const findUserChats = async(req, res) => {
-    const userId = req.params.user_Id;
+const findUserChats = async (req, res) => {
+  const userId = req.params.user_Id;
 
-    try {
-       const chats = await Chat.find({
-        members : {$in: [userId]}
-       }) 
-       res.status(200).json(chats)
-    } catch (error) {
-        console.log(error);
-        res.status(500).json(error)  
-    }
-}
+  try {
+    const chats = await Chat.find({
+      members: { $in: [userId] },
+    });
+    res.status(200).json(chats);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};
 
 // find chat for 2 users
 
-const findChat = async (req , res) => {
-    const {senderId,recieverId} = req.params; 
+const findChat = async (req, res) => {
+  const { senderId, recieverId } = req.params;
 
-    try {
-        const chat =await Chat.findOne({
-            members :{$all: [senderId,recieverId]}
-        }) 
-        res.status(200).json(chat)
-    } catch (error) {
-        console.log(error);
-        res.status(500).json(error)  
-    }
-} 
+  try {
+    const chat = await Chat.findOne({
+      members: { $all: [senderId, recieverId] },
+    });
+    res.status(200).json(chat);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};
 
-
-module.exports = {createChat,findUserChats,findChat} ;
+module.exports = { createChat, findUserChats, findChat };

@@ -4,7 +4,7 @@
 
 const createNotification = async (req, res) => {
     const {chatId,receiverId,message,isRead,date} = req.body;
-
+ 
     const notification = new Notification({chatId,receiverId,message,isRead,date})
 
    try {
